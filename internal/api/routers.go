@@ -22,6 +22,7 @@ func CmsRouters(r *gin.Engine) {
 	outRoot := r.Group(outRootPath)
 	{
 		outRoot.POST("/cms/register", cmsApp.Register)
+		outRoot.POST("/cms/login", cmsApp.Login)
 	}
 
 }

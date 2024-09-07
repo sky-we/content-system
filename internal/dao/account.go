@@ -37,3 +37,14 @@ func (a *AccountDao) Create(account model.Account) error {
 	}
 	return nil
 }
+
+func (a *AccountDao) FindByUserId(userId string) (*model.Account, error) {
+	var account model.Account
+
+	if err := a.db.Where("user_id = ?", userId).First(&account).Error; err != nil {
+		fmt.Printf("account dao FindByUserId error [%v]\n", err)
+		return nil, err
+	}
+	return &account, nil
+
+}

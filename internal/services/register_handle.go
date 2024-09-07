@@ -22,7 +22,7 @@ type RegisterRsp struct {
 	Data    string `json:"data" binding:"required"`
 }
 
-func (c *CmsApp) Register(ctx *gin.Context) {
+func (app *CmsApp) Register(ctx *gin.Context) {
 	var registerReq RegisterReq
 	if err := ctx.ShouldBindJSON(&registerReq); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": err.Error()})
@@ -37,7 +37,7 @@ func (c *CmsApp) Register(ctx *gin.Context) {
 	}
 
 	// 判断账号是否存在
-	accountDao := dao.NewAccountDao(c.db)
+	accountDao := dao.NewAccountDao(app.db)
 	exist, err := accountDao.IsExist(registerReq.UserId)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, "")
@@ -61,7 +61,7 @@ func (c *CmsApp) Register(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	//
+	// response ok
 	ctx.JSON(http.StatusOK,
 		&RegisterRsp{
 			Code:    0,
