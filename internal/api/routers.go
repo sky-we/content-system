@@ -15,13 +15,17 @@ func CmsRouters(r *gin.Engine) {
 	sessionMiddleware := &SessionAuth{}
 	root := r.Group(rootPath).Use(sessionMiddleware.Auth)
 	{
+		// 服务探测
 		root.GET("/cms/probe", cmsApp.Probe)
 
 	}
 
 	outRoot := r.Group(outRootPath)
 	{
+		// 用户注册
 		outRoot.POST("/cms/register", cmsApp.Register)
+
+		// 用户登录
 		outRoot.POST("/cms/login", cmsApp.Login)
 	}
 
