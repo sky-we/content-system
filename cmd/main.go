@@ -2,9 +2,18 @@ package main
 
 import (
 	"content-system/internal/api"
+	"content-system/internal/config"
 	"fmt"
 	"github.com/gin-gonic/gin"
 )
+
+func init() {
+	dbConfig, err := config.LoadDBConfig()
+	if err != nil {
+		panic(err)
+	}
+
+}
 
 func main() {
 	r := gin.Default()

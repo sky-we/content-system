@@ -1,0 +1,23 @@
+mysql:
+  host: "localhost"
+  port: 3306
+  username: "root"
+  password: "1qaz!QAZ"
+  ChartSet: "utf8mb4"
+  parseTime: "True"
+  loc: "Local"
+  MaxOpenConn: 4
+  MaxIdleConn: 2
+
+redis:
+  host: "localhost"
+  port: 6379
+  username: ""
+  password: ""
+  DB: 0
+
+redisWin:
+  host: "localhost"
+  port: 6379
+  password: ""
+  DB: 0
