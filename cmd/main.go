@@ -8,11 +8,7 @@ import (
 )
 
 func init() {
-	dbConfig, err := config.LoadDBConfig()
-	if err != nil {
-		panic(err)
-	}
-
+	config.LoadDBConfig()
 }
 
 func main() {
