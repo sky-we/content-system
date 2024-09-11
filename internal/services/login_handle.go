@@ -38,13 +38,13 @@ func (app *CmsApp) Login(ctx *gin.Context) {
 	accountDao := dao.NewAccountDao(app.db)
 	account, err := accountDao.FindByUserId(loginReq.UserId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, "请输入正确的用户ID")
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Message": "请输入正确的用户ID"})
 		return
 
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(loginReq.PassWord)); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, "请输入正确的密码")
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Message": "用户密码错误"})
 		return
 
 	}

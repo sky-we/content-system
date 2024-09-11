@@ -2,6 +2,8 @@ package services
 
 import (
 	"content-system/internal/services"
+	"content-system/internal/utils"
+	"context"
 	"fmt"
 	"github.com/alicebob/miniredis/v2"
 	"github.com/dolthub/go-mysql-server/sql"
@@ -63,5 +65,47 @@ func TestLogin(t *testing.T) {
 	w := httptest.NewRecorder()
 	r.ServeHTTP(w, req)
 	assert.Equal(t, 200, w.Code)
+	assert.Contains(t, w.Body.String(), "login ok")
+
+	// 2 用户重复登录
+	repeatLoginBody := `{"user_id":"haha","pass_word":"123456"}`
+	repeatReq, err := http.NewRequest(http.MethodPost, "/login", strings.NewReader(repeatLoginBody))
+	assert.NoError(t, err)
+	repeatW := httptest.NewRecorder()
+	r.ServeHTTP(repeatW, repeatReq)
+	assert.Equal(t, 400, repeatW.Code)
+	expectRepeatBody := `{"Message":"用户已登录"}`
+	assert.Equal(t, expectRepeatBody, repeatW.Body.String())
+
+	// 3 错误的请求体
+	errorReqBody := `{"user_":"haha","pass_word":"123456"}`
+	errorReq, err := http.NewRequest(http.MethodPost, "/login", strings.NewReader(errorReqBody))
+	assert.NoError(t, err)
+	errorW := httptest.NewRecorder()
+	r.ServeHTTP(errorW, errorReq)
+	assert.Equal(t, 400, errorW.Code)
+	expectErrorIdBody := `{"error":"Key: 'LoginReq.UserId' Error:Field validation for 'UserId' failed on the 'required' tag"}`
+	assert.Equal(t, expectErrorIdBody, errorW.Body.String())
+
+	// 4 不存在的用户ID
+	notExistsUserBody := `{"user_id":"haha1","pass_word":"123456"}`
+	notExistsUserReq, err := http.NewRequest(http.MethodPost, "/login", strings.NewReader(notExistsUserBody))
+	assert.NoError(t, err)
+	notExistsUserW := httptest.NewRecorder()
+	r.ServeHTTP(notExistsUserW, notExistsUserReq)
+	assert.Equal(t, 400, notExistsUserW.Code)
+	expectnotExistsUserBody := `{"Message":"请输入正确的用户ID"}`
+	assert.Equal(t, expectnotExistsUserBody, notExistsUserW.Body.String())
+
+	// 错误的用户密码
+	rdb.Del(context.Background(), utils.GenSessionKey("haha")) // 退出登录
+	errPasswordBody := `{"user_id":"haha","pass_word":"1234567"}`
+	errPasswordReq, err := http.NewRequest(http.MethodPost, "/login", strings.NewReader(errPasswordBody))
+	assert.NoError(t, err)
+	errPasswordW := httptest.NewRecorder()
+	r.ServeHTTP(errPasswordW, errPasswordReq)
+	assert.Equal(t, 400, errPasswordW.Code)
+	expectErrPasswordBody := `{"Message":"用户密码错误"}`
+	assert.Equal(t, expectErrPasswordBody, errPasswordW.Body.String())
 
 }
