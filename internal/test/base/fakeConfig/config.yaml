@@ -8,10 +8,3 @@ mysql:
   loc: "Local"
   MaxOpenConn: 4
   MaxIdleConn: 2
-
-redis:
-  host: "localhost"
-  port: 6380
-  username: ""
-  password: ""
-  DB: 0

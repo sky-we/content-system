@@ -30,6 +30,11 @@ func (app *CmsApp) Login(ctx *gin.Context) {
 		return
 	}
 
+	if app.IsLogin(context.Background(), loginReq.UserId) {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Message": "用户已登录"})
+		return
+	}
+
 	accountDao := dao.NewAccountDao(app.db)
 	account, err := accountDao.FindByUserId(loginReq.UserId)
 	if err != nil {
@@ -43,7 +48,7 @@ func (app *CmsApp) Login(ctx *gin.Context) {
 		return
 
 	}
-	sessionId, err := app.genSessionId(ctx, account.UserId)
+	sessionId, err := app.genSessionId(context.Background(), account.UserId)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, "系统内部错误，请稍后重试")
 
@@ -58,16 +63,22 @@ func (app *CmsApp) Login(ctx *gin.Context) {
 
 }
 
-func (app *CmsApp) genSessionId(context context.Context, userId string) (string, error) {
+func (app *CmsApp) genSessionId(ctx context.Context, userId string) (string, error) {
 	sessionId := uuid.New().String()
-	//sessionKey := utils.GenSessionKey(sessionId)
-	//if err := app.rdb.Set(context, utils.SessionKey, sessionId, time.Hour*8).Err(); err != nil {
-	//	return "", err
-	//}
-	//fmt.Println("sessionId", sessionId)
-	authKey := utils.GenAuthKey(sessionId)
-	if err := app.rdb.Set(context, authKey, time.Now().Unix(), time.Hour*8).Err(); err != nil {
+	if err := app.rdb.Set(ctx, utils.GenSessionKey(userId), sessionId, time.Hour*8).Err(); err != nil {
+		return "", err
+	}
+	if err := app.rdb.Set(ctx, utils.GenAuthKey(sessionId), time.Now().Unix(), time.Hour*8).Err(); err != nil {
 		return "", err
 	}
 	return sessionId, nil
+}
+
+func (app *CmsApp) IsLogin(ctx context.Context, userId string) bool {
+	exists, err := app.rdb.Exists(ctx, utils.GenSessionKey(userId)).Result()
+	if err != nil {
+		panic(err)
+	}
+	return exists > 0
+
 }

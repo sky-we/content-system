@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"github.com/redis/go-redis/v9"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -23,17 +22,8 @@ type FakeMysqlConfig struct {
 	MaxIdleConn int
 }
 
-type FakeRedisConfig struct {
-	Host     string
-	Port     int
-	Username string
-	Password string
-	DB       int
-}
-
 type FakeDBConfig struct {
 	MySQL *FakeMysqlConfig
-	Redis *FakeRedisConfig
 }
 
 func LoadFakeDBConfig() {
@@ -42,7 +32,9 @@ func LoadFakeDBConfig() {
 	viper.AddConfigPath("../base/fakeConfig")
 
 	if err := viper.ReadInConfig(); err != nil {
+		fmt.Println("viper ReadInConfig /base/fakeConfig panic")
 		panic(err)
+
 	}
 	if err := viper.Unmarshal(&FakeDbCfg); err != nil {
 	}
@@ -74,15 +66,4 @@ func NewFakeMySqlDB(cfg *FakeMysqlConfig) *gorm.DB {
 	db.SetMaxOpenConns(cfg.MaxOpenConn)
 	db.SetMaxIdleConns(cfg.MaxIdleConn)
 	return mysqlDB
-}
-
-func NewFakeRdb(cfg *FakeRedisConfig) *redis.Client {
-	option := redis.Options{
-		Addr:     fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
-		Password: cfg.Password,
-		DB:       cfg.DB,
-	}
-	fmt.Println("fake redis connect option:", option)
-	rdb := redis.NewClient(&option)
-	return rdb
 }

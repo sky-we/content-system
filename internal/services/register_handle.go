@@ -26,7 +26,6 @@ func (app *CmsApp) Register(ctx *gin.Context) {
 	var registerReq RegisterReq
 	if err := ctx.ShouldBindJSON(&registerReq); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"err": err.Error()})
-		fmt.Println("error", err.Error())
 		return
 	}
 
