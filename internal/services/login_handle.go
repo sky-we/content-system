@@ -50,7 +50,7 @@ func (app *CmsApp) Login(ctx *gin.Context) {
 	}
 	sessionId, err := app.genSessionId(context.Background(), account.UserId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, "系统内部错误，请稍后重试")
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Message": "服务器内部错误", "err": err.Error()})
 
 	}
 	ctx.JSON(http.StatusOK, gin.H{"code": 0,

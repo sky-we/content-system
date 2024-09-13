@@ -3,10 +3,7 @@ package api
 import (
 	"content-system/internal/config"
 	"content-system/internal/services"
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/redis/go-redis/v9"
-	"gorm.io/gorm"
 )
 
 const (
@@ -15,17 +12,24 @@ const (
 )
 
 func CmsRouters(r *gin.Engine) {
-
 	db := config.NewMySqlDB(config.DBConfig.MySQL)
 	rdb := config.NewRdb(config.DBConfig.Redis)
 
+	// 依赖注入
 	cmsApp := services.NewCmsApp(db, rdb)
 
+	// 鉴权中间件
 	sessionMiddleware := &SessionAuth{}
 	root := r.Group(rootPath).Use(sessionMiddleware.Auth)
 	{
 		// 服务探测
 		root.GET("/cms/probe", cmsApp.Probe)
+
+		// 内容创建
+		root.POST("/cms/content/create", cmsApp.ContentCreate)
+
+		// 内容更新
+		root.POST("/cms/content/update", cmsApp.ContentUpdate)
 	}
 
 	outRoot := r.Group(outRootPath)
@@ -35,23 +39,6 @@ func CmsRouters(r *gin.Engine) {
 
 		// 用户登录
 		outRoot.POST("/cms/login", cmsApp.Login)
-	}
-	//defer func() {
-	//	CloseDB(db, rdb)
-	//}()
-
-}
-
-func CloseDB(db *gorm.DB, rdb *redis.Client) {
-
-	sqlDB, _ := db.DB()
-	if err := sqlDB.Close(); err != nil {
-		fmt.Println("close mysql db error")
-		panic(err)
-	}
-	if err := rdb.Close(); err != nil {
-		fmt.Println("close redis db error")
-		panic(err)
 	}
 
 }

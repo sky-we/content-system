@@ -27,7 +27,7 @@ func (s *SessionAuth) Auth(ctx *gin.Context) {
 	redisCtx := context.Background()
 	_, err := s.rdb.Get(redisCtx, utils.GenAuthKey(sid)).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, "系统内部错误，请稍后重试")
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Message": "服务器内部错误", "err": err.Error()})
 		return
 	}
 	if errors.Is(err, redis.Nil) {

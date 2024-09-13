@@ -32,14 +32,14 @@ func (app *CmsApp) Register(ctx *gin.Context) {
 	// 密码加密
 	hashedPassword, err := encryptPassword(registerReq.PassWord)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, "")
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Message": "服务器内部错误", "err": err.Error()})
 	}
 
 	// 判断账号是否存在
 	accountDao := dao.NewAccountDao(app.db)
 	exist, err := accountDao.IsExist(registerReq.UserId)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, "")
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Message": "服务器内部错误", "err": err.Error()})
 		fmt.Println("error", err.Error())
 		return
 	}
@@ -57,7 +57,7 @@ func (app *CmsApp) Register(ctx *gin.Context) {
 		Ct:       nowTime,
 		Ut:       nowTime,
 	}); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Message": "服务器内部错误", "err": err.Error()})
 	}
 
 	// response ok
