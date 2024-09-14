@@ -13,33 +13,27 @@ import (
 const sessionKey = "session_id"
 
 type SessionAuth struct {
-	sessionId int
-	rdb       *redis.Client
+	SessionId int
+	Rdb       *redis.Client
 }
 
 func (s *SessionAuth) Auth(ctx *gin.Context) {
 	sid := ctx.GetHeader(sessionKey)
 	if sid == "" {
-		ctx.AbortWithStatusJSON(http.StatusForbidden, "用户未登录")
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "用户未登录"})
 		return
 	}
-	s.connRdb()
 	redisCtx := context.Background()
-	_, err := s.rdb.Get(redisCtx, utils.GenAuthKey(sid)).Result()
+	_, err := s.Rdb.Get(redisCtx, utils.GenAuthKey(sid)).Result()
 	if err != nil && !errors.Is(err, redis.Nil) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Message": "服务器内部错误", "err": err.Error()})
 		return
 	}
 	if errors.Is(err, redis.Nil) {
 		fmt.Println(err)
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, "用户未登录")
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "用户未登录"})
 		return
 	}
 	fmt.Printf("session id = %s", utils.GenAuthKey(sid))
 	ctx.Next()
-}
-
-func (s *SessionAuth) connRdb() {
-	rdb := redis.NewClient(&redis.Options{Addr: "localhost:6379", Password: "", DB: 0})
-	s.rdb = rdb
 }

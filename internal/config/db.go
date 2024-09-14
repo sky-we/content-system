@@ -52,7 +52,7 @@ func LoadDBConfig() {
 	once.Do(func() {
 		viper.SetConfigName("config")
 		viper.SetConfigType("yaml")
-		viper.AddConfigPath("d://Code/content-system/internal/config")
+		viper.AddConfigPath("internal/config")
 
 		if err := viper.ReadInConfig(); err != nil {
 			fmt.Printf("error reading db config file, %s", err)

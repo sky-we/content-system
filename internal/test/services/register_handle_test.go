@@ -4,6 +4,9 @@ import (
 	"content-system/internal/services"
 	"fmt"
 	"github.com/alicebob/miniredis/v2"
+	"github.com/dolthub/go-mysql-server/sql"
+	"github.com/dolthub/go-mysql-server/sql/types"
+	"github.com/dolthub/vitess/go/vt/proto/query"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +18,18 @@ import (
 
 func TestRegister(t *testing.T) {
 	// 启动go-mysql-server
-	server, _, _ := GetMysqlFakeDBServer("cms_account", "account")
+	dbName := "cms_account"
+	tableName := "account"
+	schema := sql.Schema{
+		{Name: "id", Type: types.Int32, Nullable: false, Source: tableName, PrimaryKey: true, Comment: "主键ID", AutoIncrement: true},
+		{Name: "user_id", Type: types.Text, Nullable: true, Source: tableName, PrimaryKey: false, Comment: "用户id"},
+		{Name: "pass_word", Type: types.Text, Nullable: true, Source: tableName, PrimaryKey: false, Comment: "密码"},
+		{Name: "nick_name", Type: types.Text, Nullable: true, Source: tableName, PrimaryKey: false, Comment: "昵称"},
+		{Name: "created_at", Type: types.MustCreateDatetimeType(query.Type_DATETIME, 6), Nullable: false, Source: tableName},
+		{Name: "updated_at", Type: types.MustCreateDatetimeType(query.Type_DATETIME, 6), Nullable: false, Source: tableName},
+	}
+	pro, _ := CreateTestDatabase(dbName, tableName, schema)
+	server, _ := FakeMysqlServer(pro)
 	go func() {
 		if err := server.Start(); err != nil {
 			fmt.Println("server start error", err)
@@ -48,35 +62,40 @@ func TestRegister(t *testing.T) {
 	app := services.NewCmsApp(db, rdb)
 	r := gin.Default()
 	r.POST("/register", app.Register)
+	{
+		// 1 模拟正常请求，预期返回200，注册成功
+		body := `{"user_id":"haha","pass_word":"123456","nick_name":"sky-we"}`
+		req, err := http.NewRequest(http.MethodPost, "/register", strings.NewReader(body))
+		assert.NoError(t, err)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+		expectBody := `{"code":0,"msg":"ok","data":"haha register ok"}`
+		assert.Equal(t, expectBody, w.Body.String())
+	}
 
-	// 1 模拟正常请求，预期返回200，注册成功
-	body := `{"user_id":"haha","pass_word":"123456","nick_name":"sky-we"}`
-	req, err := http.NewRequest(http.MethodPost, "/register", strings.NewReader(body))
-	assert.NoError(t, err)
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	assert.Equal(t, 200, w.Code)
-	expectBody := `{"code":0,"msg":"ok","data":"haha register ok"}`
-	assert.Equal(t, expectBody, w.Body.String())
+	{
+		// 2 重复注册
+		body := `{"user_id":"haha","pass_word":"123456","nick_name":"sky-we"}`
+		req, err := http.NewRequest(http.MethodPost, "/register", strings.NewReader(body))
+		assert.NoError(t, err)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		expectBody := `{"Message":"账号已存在"}`
+		assert.Equal(t, expectBody, w.Body.String())
+	}
 
-	// 2 重复注册
-	errorExistBody := `{"user_id":"haha","pass_word":"123456","nick_name":"sky-we"}`
-	req2, err2 := http.NewRequest(http.MethodPost, "/register", strings.NewReader(errorExistBody))
-	assert.NoError(t, err2)
-	w2 := httptest.NewRecorder()
-	r.ServeHTTP(w2, req2)
-	assert.Equal(t, 400, w2.Code)
-	expectErrBody := "{\"Message\":\"账号已存在\"}"
-	assert.Equal(t, expectErrBody, w2.Body.String())
-
-	// 3 注册信息错误
-	errorBody := `{"user_i":"haha","pass_word":"123456","nick_name":"sky-we"}`
-	req, err3 := http.NewRequest(http.MethodPost, "/register", strings.NewReader(errorBody))
-	assert.NoError(t, err3)
-	w3 := httptest.NewRecorder()
-	r.ServeHTTP(w3, req)
-	assert.Equal(t, 400, w3.Code)
-	expectErrReqBody := `{"err":"Key: 'RegisterReq.UserId' Error:Field validation for 'UserId' failed on the 'required' tag"}`
-	assert.Equal(t, expectErrReqBody, w3.Body.String())
+	{
+		// 3 注册信息错误
+		body := `{"user_i":"haha","pass_word":"123456","nick_name":"sky-we"}`
+		req, err := http.NewRequest(http.MethodPost, "/register", strings.NewReader(body))
+		assert.NoError(t, err)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusBadRequest, w.Code)
+		expectBody := `{"err":"Key: 'RegisterReq.UserId' Error:Field validation for 'UserId' failed on the 'required' tag"}`
+		assert.Equal(t, expectBody, w.Body.String())
+	}
 
 }

@@ -1,3 +1,5 @@
+CREATE DATABASE `cms_content` DEFAULT CHARSET = utf8mb4 COLLATE = utf8mb4_unicode_ci;
+
 use cms_content;
 CREATE TABLE `content_details` (
                                      `id` bigint NOT NULL AUTO_INCREMENT COMMENT '自增ID',

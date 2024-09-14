@@ -3,12 +3,13 @@ package services
 import (
 	"content-system/internal/dao"
 	"content-system/internal/model"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
 )
 
-type ContentUpdateReq struct {
+type ContentCreateReq struct {
 	ID             int           `json:"id"`                           // 内容ID
 	Title          string        `json:"title" binding:"required"`     // 内容标题
 	VideoURL       string        `json:"video_url" binding:"required"` // 视频播放URL
@@ -26,61 +27,61 @@ type ContentUpdateReq struct {
 	CreatedAt      time.Time     `json:"created_at"`                   // 内容创建时间
 }
 
-type ContentUpdateRsp struct {
-	Code    int               `json:"code"`
-	Message string            `json:"message"`
-	Data    map[string]string `json:"data"`
+type ContentCreateRsp struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+	Data    gin.H  `json:"data"`
 }
 
-func (app *CmsApp) ContentUpdate(ctx *gin.Context) {
-	// 参数校验
-	var contentUpdateReq ContentUpdateReq
-	if err := ctx.ShouldBindJSON(&contentUpdateReq); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Message": "参数错误", "err": err.Error()})
+func (app *CmsApp) ContentCreate(ctx *gin.Context) {
+	var contentCreateReq ContentCreateReq
+
+	// 入参校验
+	if err := ctx.ShouldBindJSON(&contentCreateReq); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Message": "参数错误", "error": err.Error()})
 		return
 	}
 
-	// 内容是否存在
 	contentDetailDao := dao.NewContentDetailDao(app.db)
-	exists, err := contentDetailDao.IsExist(contentUpdateReq.VideoURL)
 
+	// 内容是否重复上传
+	exists, err := contentDetailDao.IsVideoRepeat(contentCreateReq.VideoURL)
+	if exists {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Message": fmt.Sprintf("[video_url=%s]内容已存在", contentCreateReq.VideoURL)})
+		return
+	}
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Message": "服务器内部错误", "err": err.Error()})
 		return
 	}
-	if !exists {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"Message": "内容不存在"})
-		return
-	}
 	contentDetail := &model.ContentDetail{
-		Title:          contentUpdateReq.Title,
-		Description:    contentUpdateReq.Description,
-		Author:         contentUpdateReq.Author,
-		VideoURL:       contentUpdateReq.VideoURL,
-		Thumbnail:      contentUpdateReq.Thumbnail,
-		Category:       contentUpdateReq.Category,
-		Duration:       contentUpdateReq.Duration,
-		Resolution:     contentUpdateReq.Resolution,
-		FileSize:       contentUpdateReq.FileSize,
-		Format:         contentUpdateReq.Format,
-		Quality:        contentUpdateReq.Quality,
-		ApprovalStatus: contentUpdateReq.ApprovalStatus,
-		UpdatedAt:      contentUpdateReq.UpdatedAt,
-		CreatedAt:      contentUpdateReq.CreatedAt,
+		Title:          contentCreateReq.Title,
+		Description:    contentCreateReq.Description,
+		Author:         contentCreateReq.Author,
+		VideoURL:       contentCreateReq.VideoURL,
+		Thumbnail:      contentCreateReq.Thumbnail,
+		Category:       contentCreateReq.Category,
+		Duration:       contentCreateReq.Duration,
+		Resolution:     contentCreateReq.Resolution,
+		FileSize:       contentCreateReq.FileSize,
+		Format:         contentCreateReq.Format,
+		Quality:        contentCreateReq.Quality,
+		ApprovalStatus: contentCreateReq.ApprovalStatus,
+		UpdatedAt:      contentCreateReq.UpdatedAt,
+		CreatedAt:      contentCreateReq.CreatedAt,
 	}
 
-	// 更新
-	if err := contentDetailDao.Update(contentUpdateReq.VideoURL, contentDetail); err != nil {
+	// 创建
+	contentId, err := contentDetailDao.Create(contentDetail)
+	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Message": "服务器内部错误", "err": err.Error()})
 		return
 	}
 
 	ctx.JSON(http.StatusOK, &ContentCreateRsp{
 		Code:    0,
-		Message: "update ok",
-		Data: map[string]string{
-			"video_url": contentUpdateReq.VideoURL,
-		},
+		Message: "success",
+		Data:    gin.H{"ID": contentId},
 	})
 
 }

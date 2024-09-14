@@ -19,7 +19,7 @@ func CmsRouters(r *gin.Engine) {
 	cmsApp := services.NewCmsApp(db, rdb)
 
 	// 鉴权中间件
-	sessionMiddleware := &SessionAuth{}
+	sessionMiddleware := &SessionAuth{Rdb: rdb}
 	root := r.Group(rootPath).Use(sessionMiddleware.Auth)
 	{
 		// 服务探测
@@ -30,6 +30,9 @@ func CmsRouters(r *gin.Engine) {
 
 		// 内容更新
 		root.POST("/cms/content/update", cmsApp.ContentUpdate)
+
+		// 内容更新
+		root.POST("/cms/content/delete", cmsApp.ContentDelete)
 	}
 
 	outRoot := r.Group(outRootPath)
