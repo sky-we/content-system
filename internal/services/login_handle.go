@@ -48,7 +48,7 @@ func (app *CmsApp) Login(ctx *gin.Context) {
 		return
 
 	}
-	sessionId, err := app.genSessionId(context.Background(), account.UserId)
+	sessionId, err := app.GenSessionId(context.Background(), account.UserId)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Message": "服务器内部错误", "err": err.Error()})
 
@@ -63,7 +63,7 @@ func (app *CmsApp) Login(ctx *gin.Context) {
 
 }
 
-func (app *CmsApp) genSessionId(ctx context.Context, userId string) (string, error) {
+func (app *CmsApp) GenSessionId(ctx context.Context, userId string) (string, error) {
 	sessionId := uuid.New().String()
 	if err := app.rdb.Set(ctx, utils.GenSessionKey(userId), sessionId, time.Hour*8).Err(); err != nil {
 		return "", err

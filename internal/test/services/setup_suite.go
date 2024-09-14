@@ -12,19 +12,23 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/suite"
-	"gorm.io/gorm"
 )
 
-type ContentTestSuite struct {
+type BaseTestSuite struct {
 	suite.Suite
-	DbName    string
-	Provider  *memory.DbProvider
-	Table     *memory.Table
-	Root      gin.IRoutes
+	// 操作go-mysql-server
+	DbName   string
+	Provider *memory.DbProvider
+	Table    *memory.Table
+	// 接收单元测试的请求
 	GinEngine *gin.Engine
-	Db        *gorm.DB
-	Rdb       *redis.Client
-	App       *services.CmsApp
+	// 操作MiniRedis
+	Rdb *redis.Client
+	App *services.CmsApp
+}
+
+type ContentTestSuite struct {
+	BaseTestSuite
 }
 
 func (suite *ContentTestSuite) SetupTest() {
@@ -89,9 +93,72 @@ func (suite *ContentTestSuite) SetupTest() {
 	suite.Provider = pro
 	suite.Table = table
 	suite.GinEngine = r
-	suite.Root = root
-	suite.Db = db
 	suite.Rdb = rdb
 	suite.App = app
+	root.POST("/cms/content/create", suite.App.ContentCreate)
+	root.POST("/cms/content/update", suite.App.ContentUpdate)
+	root.POST("/cms/content/delete", suite.App.ContentDelete)
+	root.GET("/cms/probe", suite.App.Probe)
+}
 
+type AccountTestSuite struct {
+	BaseTestSuite
+}
+
+func (suite *AccountTestSuite) SetupTest() {
+	suite.T().Log("Load go-mysql-server miniredis config")
+	LoadFakeDBConfig()
+	dbName := "cms_account"
+	tableName := "account"
+	suite.T().Log(fmt.Sprintf("create %s.%s table in go-mysql-server", dbName, tableName))
+	schema := sql.Schema{
+		{Name: "id", Type: types.Int32, Nullable: false, Source: tableName, PrimaryKey: true, Comment: "主键ID", AutoIncrement: true},
+		{Name: "user_id", Type: types.Text, Nullable: true, Source: tableName, PrimaryKey: false, Comment: "用户id"},
+		{Name: "pass_word", Type: types.Text, Nullable: true, Source: tableName, PrimaryKey: false, Comment: "密码"},
+		{Name: "nick_name", Type: types.Text, Nullable: true, Source: tableName, PrimaryKey: false, Comment: "昵称"},
+		{Name: "created_at", Type: types.MustCreateDatetimeType(query.Type_DATETIME, 6), Nullable: false, Source: tableName},
+		{Name: "updated_at", Type: types.MustCreateDatetimeType(query.Type_DATETIME, 6), Nullable: false, Source: tableName},
+	}
+	pro, table := CreateTestDatabase(dbName, tableName, schema)
+
+	server, _ := FakeMysqlServer(pro)
+
+	go func() {
+		suite.T().Log("start go-mysql-server")
+		if err := server.Start(); err != nil {
+			fmt.Println("mysql fake server start error")
+			panic(err)
+		}
+	}()
+	defer func() {
+		if err := server.Close(); err != nil {
+			panic(err)
+		}
+	}()
+
+	redisServer := miniredis.NewMiniRedis()
+	suite.T().Log("start MiniRedis")
+
+	if err := redisServer.StartAddr("localhost:6380"); err != nil {
+		fmt.Println("redis fake server start error")
+		panic(err)
+	}
+	suite.T().Cleanup(redisServer.Close)
+
+	gin.SetMode(gin.TestMode)
+	r := gin.Default()
+	db := NewFakeMySqlDB(FakeDbCfg.MySQL)
+	rdb := redis.NewClient(&redis.Options{
+		Addr: redisServer.Addr(),
+	})
+	app := services.NewCmsApp(db, rdb)
+	root := r.Group(OutRootPath)
+	suite.DbName = dbName
+	suite.Provider = pro
+	suite.Table = table
+	suite.GinEngine = r
+	suite.Rdb = rdb
+	suite.App = app
+	root.POST("/cms/login", suite.App.Login)
+	root.POST("/cms/register", suite.App.Register)
 }

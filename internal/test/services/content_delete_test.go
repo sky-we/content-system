@@ -11,9 +11,7 @@ import (
 	"time"
 )
 
-func (suite *ContentTestSuite) TestUserNotLogin() {
-	suite.Root.POST("/cms/content/delete", suite.App.ContentDelete)
-
+func (suite *ContentTestSuite) TestDeleteNotLogin() {
 	request, err := http.NewRequest(http.MethodPost, "/api/cms/content/delete", strings.NewReader(`{"id" :6}`))
 	suite.NoError(err, "http.NewRequest should not throw error")
 	w := httptest.NewRecorder()
@@ -24,8 +22,6 @@ func (suite *ContentTestSuite) TestUserNotLogin() {
 }
 
 func (suite *ContentTestSuite) TestDeleteNotExistID() {
-	suite.Root.POST("/cms/content/delete", suite.App.ContentDelete)
-
 	request, err := http.NewRequest(http.MethodPost, "/api/cms/content/delete", strings.NewReader(`{"id" :7}`))
 	suite.NoError(err, "http.NewRequest should not throw error")
 	sessionId := uuid.New().String()
@@ -40,9 +36,7 @@ func (suite *ContentTestSuite) TestDeleteNotExistID() {
 
 }
 
-func (suite *ContentTestSuite) TestArgsError() {
-	suite.Root.POST("/cms/content/delete", suite.App.ContentDelete)
-
+func (suite *ContentTestSuite) TestDeleteArgsError() {
 	reqBody := `{"id111":5}`
 	request, err := http.NewRequest(http.MethodPost, "/api/cms/content/delete", strings.NewReader(reqBody))
 	suite.NoError(err, "http.NewRequest should not throw error")
@@ -52,7 +46,6 @@ func (suite *ContentTestSuite) TestArgsError() {
 	suite.NoError(rdbErr, "rdb.Set should not throw error")
 	w := httptest.NewRecorder()
 	suite.GinEngine.ServeHTTP(w, request)
-	suite.T().Log("argserror routes", suite.GinEngine.Routes())
 	suite.Equal(http.StatusBadRequest, w.Code)
 	expectBody := `{"Message":"参数错误","error":"Key: 'ContentDeleteReq.ID' Error:Field validation for 'ID' failed on the 'required' tag"}`
 	suite.Equal(expectBody, w.Body.String())
@@ -60,8 +53,6 @@ func (suite *ContentTestSuite) TestArgsError() {
 }
 
 func (suite *ContentTestSuite) TestDeleteOk() {
-	suite.Root.POST("/cms/content/delete", suite.App.ContentDelete)
-
 	rowData := sql.Row{
 		int32(6), "cat video", "My second TikTok video", "sky-we",
 		"www.baidu.com", "http://example.com/1.jpg",
@@ -75,8 +66,6 @@ func (suite *ContentTestSuite) TestDeleteOk() {
 	suite.NoError(rdbErr, "rdb.Set should not throw error")
 	w := httptest.NewRecorder()
 	suite.GinEngine.ServeHTTP(w, request)
-	suite.T().Log("TestDeleteOk routes", suite.GinEngine.Routes())
-
 	suite.Equal(http.StatusOK, w.Code)
 	expectBody := `{"code":0,"msg":"success","data":"ID 6 delete"}`
 	suite.Equal(expectBody, w.Body.String())

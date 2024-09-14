@@ -11,8 +11,7 @@ import (
 	"time"
 )
 
-func (suite *ContentTestSuite) TestNotLogin() {
-	suite.Root.POST("/cms/content/create", suite.App.ContentCreate)
+func (suite *ContentTestSuite) TestCreateNotLogin() {
 
 	reqBody := `{
 				"title":"cat video",
@@ -38,8 +37,7 @@ func (suite *ContentTestSuite) TestNotLogin() {
 
 }
 
-func (suite *ContentTestSuite) TestErrorArgs() {
-	suite.Root.POST("/cms/content/create", suite.App.ContentCreate)
+func (suite *ContentTestSuite) TestCreateErrorArgs() {
 
 	// 入参错误
 	reqBody := `{
@@ -70,7 +68,6 @@ func (suite *ContentTestSuite) TestErrorArgs() {
 }
 
 func (suite *ContentTestSuite) TestCreateRepeat() {
-	suite.Root.POST("/cms/content/create", suite.App.ContentCreate)
 
 	reqBody := `{
 				"title":"cat video",
@@ -105,9 +102,7 @@ func (suite *ContentTestSuite) TestCreateRepeat() {
 	suite.Equal(expectBody, w.Body.String())
 }
 
-func (suite *ContentTestSuite) TestLoginAlready() {
-	suite.Root.POST("/cms/content/create", suite.App.ContentCreate)
-
+func (suite *ContentTestSuite) TestCreateLoginAlready() {
 	reqBody := `{
 				"title":"cat video",
 				"video_url":"www.sina1.com",
