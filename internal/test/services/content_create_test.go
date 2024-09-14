@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func (suite *ContentTestSuite) TestCreateNotLogin() {
+func (suite *ContentTestSuite) TestCreateContentNotLogin() {
 
 	reqBody := `{
 				"title":"cat video",
@@ -37,7 +37,7 @@ func (suite *ContentTestSuite) TestCreateNotLogin() {
 
 }
 
-func (suite *ContentTestSuite) TestCreateErrorArgs() {
+func (suite *ContentTestSuite) TestCreateContentErrorArgs() {
 
 	// 入参错误
 	reqBody := `{
@@ -67,7 +67,7 @@ func (suite *ContentTestSuite) TestCreateErrorArgs() {
 	suite.Equal(expectBody, w.Body.String())
 }
 
-func (suite *ContentTestSuite) TestCreateRepeat() {
+func (suite *ContentTestSuite) TestCreateContentRepeat() {
 
 	reqBody := `{
 				"title":"cat video",
@@ -102,7 +102,7 @@ func (suite *ContentTestSuite) TestCreateRepeat() {
 	suite.Equal(expectBody, w.Body.String())
 }
 
-func (suite *ContentTestSuite) TestCreateLoginAlready() {
+func (suite *ContentTestSuite) TestCreateContentLoginAlready() {
 	reqBody := `{
 				"title":"cat video",
 				"video_url":"www.sina1.com",

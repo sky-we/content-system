@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func (suite *ContentTestSuite) TestUpdateNoLogin() {
+func (suite *ContentTestSuite) TestUpdateContentNoLogin() {
 	reqBody := `{"id" : 6,
 				"title":"Animal video2",
 				"video_url":"www.baidu.com",
@@ -36,7 +36,7 @@ func (suite *ContentTestSuite) TestUpdateNoLogin() {
 	expectBody := `{"Message":"用户未登录"}`
 	suite.Equal(expectBody, w.Body.String())
 }
-func (suite *ContentTestSuite) TestUpdateArgsErr() {
+func (suite *ContentTestSuite) TestUpdateContentArgsErr() {
 	reqBody := `{
 				"title":"cat video",
 				"video_url":"www.sina1.com",
@@ -63,7 +63,7 @@ func (suite *ContentTestSuite) TestUpdateArgsErr() {
 	expectBody := `{"Message":"参数错误","err":"Key: 'ContentUpdateReq.ID' Error:Field validation for 'ID' failed on the 'required' tag"}`
 	suite.Equal(expectBody, w.Body.String())
 }
-func (suite *ContentTestSuite) TestUpdateOk() {
+func (suite *ContentTestSuite) TestUpdateContentOk() {
 	reqBody := `{"id" : 6,
 				"title":"Animal video2",
 				"video_url":"www.baidu.com",
@@ -98,7 +98,7 @@ func (suite *ContentTestSuite) TestUpdateOk() {
 	suite.Equal(expectBody, w.Body.String())
 }
 
-func (suite *ContentTestSuite) TestUpdateIDNotExist() {
+func (suite *ContentTestSuite) TestUpdateContentIDNotExist() {
 	reqBody := `{"id" : 5,
 				"title":"Animal video2",
 				"video_url":"www.baidu.com",

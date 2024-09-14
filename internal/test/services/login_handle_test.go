@@ -36,7 +36,7 @@ func (suite *AccountTestSuite) TestLoginRepeat() {
 	suite.Equal(expectBody, w.Body.String())
 }
 
-func (suite *AccountTestSuite) TestArgError() {
+func (suite *AccountTestSuite) TestLoginArgError() {
 	body := `{"user_":"haha","pass_word":"123456"}`
 	request, err := http.NewRequest(http.MethodPost, "/out/api/cms/login", strings.NewReader(body))
 	suite.NoError(err, "http.NewRequest should not throw error")
@@ -58,7 +58,7 @@ func (suite *AccountTestSuite) TestLoginNotExistUserID() {
 	suite.Equal(expectBody, w.Body.String())
 }
 
-func (suite *AccountTestSuite) TestErrorPasswd() {
+func (suite *AccountTestSuite) TestLoginErrorPasswd() {
 	passwd, _ := bcrypt.GenerateFromPassword([]byte("123456"), bcrypt.DefaultCost)
 	rowData := sql.Row{int32(3), "haha", string(passwd), "sky-we", time.Now(), time.Now()}
 	InsertData(suite.DbName, suite.Provider, suite.Table, rowData)

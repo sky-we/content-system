@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func (suite *ContentTestSuite) TestDeleteNotLogin() {
+func (suite *ContentTestSuite) TestDeleteContentNotLogin() {
 	request, err := http.NewRequest(http.MethodPost, "/api/cms/content/delete", strings.NewReader(`{"id" :6}`))
 	suite.NoError(err, "http.NewRequest should not throw error")
 	w := httptest.NewRecorder()
@@ -21,7 +21,7 @@ func (suite *ContentTestSuite) TestDeleteNotLogin() {
 	suite.Equal(expectBody, w.Body.String())
 }
 
-func (suite *ContentTestSuite) TestDeleteNotExistID() {
+func (suite *ContentTestSuite) TestDeleteContentNotExistID() {
 	request, err := http.NewRequest(http.MethodPost, "/api/cms/content/delete", strings.NewReader(`{"id" :7}`))
 	suite.NoError(err, "http.NewRequest should not throw error")
 	sessionId := uuid.New().String()
@@ -36,7 +36,7 @@ func (suite *ContentTestSuite) TestDeleteNotExistID() {
 
 }
 
-func (suite *ContentTestSuite) TestDeleteArgsError() {
+func (suite *ContentTestSuite) TestDeleteContentArgsError() {
 	reqBody := `{"id111":5}`
 	request, err := http.NewRequest(http.MethodPost, "/api/cms/content/delete", strings.NewReader(reqBody))
 	suite.NoError(err, "http.NewRequest should not throw error")
@@ -52,7 +52,7 @@ func (suite *ContentTestSuite) TestDeleteArgsError() {
 
 }
 
-func (suite *ContentTestSuite) TestDeleteOk() {
+func (suite *ContentTestSuite) TestDeleteContentOk() {
 	rowData := sql.Row{
 		int32(6), "cat video", "My second TikTok video", "sky-we",
 		"www.baidu.com", "http://example.com/1.jpg",
