@@ -69,3 +69,46 @@ func (c *ContentDetailDao) Delete(id int, detail *model.ContentDetail) error {
 	return nil
 
 }
+
+type FindParams struct {
+	ID       int
+	Author   string
+	Title    string
+	Page     int
+	PageSize int
+}
+
+func (c *ContentDetailDao) Find(params *FindParams, detail *model.ContentDetail) (details *[]model.ContentDetail, total int64, err error) {
+	query := c.db.Model(&detail)
+	if params.ID != 0 {
+		query = query.Where("id = ?", params.ID)
+	}
+	if params.Author != "" {
+		query = query.Where("author = ?", params.Author)
+	}
+	if params.Title != "" {
+		query = query.Where("title = ?", params.Title)
+	}
+
+	var count int64
+	query.Count(&count)
+
+	page := 1
+	pageSize := 10
+
+	if params.Page > 0 {
+		page = params.Page
+	}
+	if params.PageSize > 0 {
+		pageSize = params.PageSize
+	}
+
+	offset := (page - 1) * pageSize
+
+	var results []model.ContentDetail
+	if err := query.Offset(offset).Limit(pageSize).Find(&results).Error; err != nil {
+		return nil, 0, err
+	}
+	return &results, count, nil
+
+}

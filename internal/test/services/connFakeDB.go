@@ -52,7 +52,6 @@ func NewFakeMySqlDB(cfg *FakeMysqlConfig) *gorm.DB {
 		cfg.ParseTime,
 		cfg.Loc,
 	)
-	fmt.Println("fake mysql connect dsn:", dsn)
 	mysqlDB, err := gorm.Open(mysql.Open(dsn))
 	if err != nil {
 		fmt.Println("connect mysql error:", err)

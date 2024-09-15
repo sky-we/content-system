@@ -98,6 +98,8 @@ func (suite *ContentTestSuite) SetupTest() {
 	root.POST("/cms/content/create", suite.App.ContentCreate)
 	root.POST("/cms/content/update", suite.App.ContentUpdate)
 	root.POST("/cms/content/delete", suite.App.ContentDelete)
+	root.POST("/cms/content/find", suite.App.ContentFind)
+
 	root.GET("/cms/probe", suite.App.Probe)
 }
 

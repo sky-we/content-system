@@ -33,6 +33,9 @@ func CmsRouters(r *gin.Engine) {
 
 		// 内容更新
 		root.POST("/cms/content/delete", cmsApp.ContentDelete)
+
+		// 内容更新
+		root.POST("/cms/content/find", cmsApp.ContentFind)
 	}
 
 	outRoot := r.Group(outRootPath)

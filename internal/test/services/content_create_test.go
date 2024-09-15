@@ -126,5 +126,6 @@ func (suite *ContentTestSuite) TestCreateContentLoginAlready() {
 	w := httptest.NewRecorder()
 	suite.GinEngine.ServeHTTP(w, request)
 	suite.Equal(http.StatusOK, w.Code)
-
+	expectBody := `{"code":0,"message":"success","data":{"ID":1}}`
+	suite.Equal(expectBody, w.Body.String())
 }
