@@ -9,7 +9,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
 	github.com/redis/go-redis/v9 v9.6.1
-	github.com/s8sg/goflow v0.1.4
+	github.com/s8sg/goflow v0.1.5-0.20230729173817-d3eded44d6f8
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.9.0

@@ -1,8 +1,10 @@
 package config
 
 import (
+	"content-system/internal/process"
 	"fmt"
 	"github.com/redis/go-redis/v9"
+	goflow "github.com/s8sg/goflow/v1"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -37,10 +39,17 @@ type RedisWinConfig struct {
 	DB       int
 }
 
+type FlowServiceConfig struct {
+	RedisURL          string
+	Port              int
+	WorkerConcurrency int
+}
+
 type DataBaseConfig struct {
-	MySQL    *MysqlConfig
-	Redis    *RedisConfig
-	RedisWin *RedisWinConfig
+	MySQL       *MysqlConfig
+	Redis       *RedisConfig
+	RedisWin    *RedisWinConfig
+	FlowService *FlowServiceConfig
 }
 
 var (
@@ -100,4 +109,19 @@ func NewRdb(cfg *RedisConfig) *redis.Client {
 	fmt.Println("redis connect option:", option)
 	rdb := redis.NewClient(&option)
 	return rdb
+}
+
+func NewFlowService(cfg *FlowServiceConfig) *goflow.FlowService {
+	fs := goflow.FlowService{
+		Port:              cfg.Port,
+		RedisURL:          cfg.RedisURL,
+		WorkerConcurrency: cfg.WorkerConcurrency,
+	}
+	contentFlow := process.ContentFlow{}
+	err := fs.Register("content-flow", contentFlow.ContentFlowHandle)
+	if err != nil {
+		panic(err)
+	}
+
+	return &fs
 }

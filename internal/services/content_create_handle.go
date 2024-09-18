@@ -3,8 +3,10 @@ package services
 import (
 	"content-system/internal/dao"
 	"content-system/internal/model"
+	"encoding/json"
 	"fmt"
 	"github.com/gin-gonic/gin"
+	goflow "github.com/s8sg/goflow/v1"
 	"net/http"
 	"time"
 )
@@ -71,10 +73,23 @@ func (app *CmsApp) ContentCreate(ctx *gin.Context) {
 		CreatedAt:      contentCreateReq.CreatedAt,
 	}
 
-	// 创建
 	contentId, err := contentDetailDao.Create(contentDetail)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Message": "服务器内部错误", "err": err.Error()})
+		return
+	}
+
+	body, err := json.Marshal(map[string]int{"input": contentId})
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Message": "服务器内部错误", "err": err.Error()})
+		return
+	}
+
+	// 数据加工开始
+	if execErr := app.flowService.Execute("content-flow", &goflow.Request{
+		Body: body,
+	}); execErr != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Message": "call flow service failed", "err": execErr.Error()})
 		return
 	}
 

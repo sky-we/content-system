@@ -43,6 +43,24 @@ func (c *ContentDetailDao) IsExist(id int) (bool, error) {
 	return true, nil
 }
 
+func (c *ContentDetailDao) First(id int) (*model.ContentDetail, error) {
+
+	var detail model.ContentDetail
+	fmt.Println(c.db.Where("id = ?", id))
+	err := c.db.Where("id = ?", id).First(&detail).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		fmt.Println("error not found")
+
+		return nil, nil
+	}
+	if err != nil {
+		fmt.Println(err)
+		return &detail, nil
+	}
+	return &detail, nil
+
+}
+
 func (c *ContentDetailDao) Create(detail *model.ContentDetail) (int, error) {
 	result := c.db.Create(&detail)
 	if result.Error != nil {
@@ -56,6 +74,14 @@ func (c *ContentDetailDao) Update(id int, detail *model.ContentDetail) error {
 
 	if err := c.db.Where("id = ?", id).Updates(&detail).Error; err != nil {
 		fmt.Printf("ContentDetailDao update error, %s", err)
+		return err
+	}
+	return nil
+}
+
+func (c *ContentDetailDao) UpdateColById(id int, col string, val any) error {
+	if err := c.db.Where("id = ?", id).Update(col, val).Error; err != nil {
+		fmt.Printf("ContentDetailDao UpdateColById error, %s", err)
 		return err
 	}
 	return nil

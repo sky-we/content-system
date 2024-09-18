@@ -8,3 +8,9 @@ mysql:
   loc: "Local"
   MaxOpenConn: 4
   MaxIdleConn: 2
+
+
+flow:
+  redisURL: "localhost:6380"
+  port: 8088
+  workerConcurrency: 5
