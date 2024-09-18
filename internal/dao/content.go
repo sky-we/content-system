@@ -80,7 +80,7 @@ func (c *ContentDetailDao) Update(id int, detail *model.ContentDetail) error {
 }
 
 func (c *ContentDetailDao) UpdateColById(id int, col string, val any) error {
-	if err := c.db.Where("id = ?", id).Update(col, val).Error; err != nil {
+	if err := c.db.Model(&model.ContentDetail{}).Where("id = ?", id).Update(col, val).Error; err != nil {
 		fmt.Printf("ContentDetailDao UpdateColById error, %s", err)
 		return err
 	}

@@ -117,7 +117,7 @@ func NewFlowService(cfg *FlowServiceConfig) *goflow.FlowService {
 		RedisURL:          cfg.RedisURL,
 		WorkerConcurrency: cfg.WorkerConcurrency,
 	}
-	contentFlow := process.ContentFlow{}
+	contentFlow := process.NewContentFlow(NewMySqlDB(DBConfig.MySQL))
 	err := fs.Register("content-flow", contentFlow.ContentFlowHandle)
 	if err != nil {
 		panic(err)

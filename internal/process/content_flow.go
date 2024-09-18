@@ -1,7 +1,6 @@
 package process
 
 import (
-	"content-system/internal/config"
 	"content-system/internal/dao"
 	"encoding/json"
 	"fmt"
@@ -10,16 +9,15 @@ import (
 )
 
 type ContentFlow struct {
-	contentDao *dao.ContentDetailDao
+	ContentDao *dao.ContentDetailDao
 }
 
 func NewContentFlow(db *gorm.DB) *ContentFlow {
 	detailDao := dao.NewContentDetailDao(db)
-	return &ContentFlow{contentDao: detailDao}
+	return &ContentFlow{ContentDao: detailDao}
 }
 
 func (c *ContentFlow) ContentFlowHandle(workflow *flow.Workflow, context *flow.Context) error {
-	NewContentFlow(config.NewMySqlDB(config.DBConfig.MySQL))
 	dag := workflow.Dag()
 	dag.Node("input", c.input)
 	dag.Node("verify", c.verify)
@@ -38,7 +36,6 @@ func (c *ContentFlow) ContentFlowHandle(workflow *flow.Workflow, context *flow.C
 			return []string{"fail"}
 			// 分支结果聚合
 		}, flow.Aggregator(func(m map[string][]byte) ([]byte, error) {
-			fmt.Println(m)
 			return []byte("ok"), nil
 		}),
 	)
@@ -64,7 +61,7 @@ func (c *ContentFlow) input(data []byte, options map[string][]string) ([]byte, e
 		return nil, err
 	}
 	id := d["input"]
-	detail, err := c.contentDao.First(id)
+	detail, err := c.ContentDao.First(id)
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +103,7 @@ func (c *ContentFlow) category(data []byte, options map[string][]string) ([]byte
 		return nil, err
 	}
 	contentId := int(input["id"].(float64))
-	err := c.contentDao.UpdateColById(contentId, "category", "category-workflow")
+	err := c.ContentDao.UpdateColById(contentId, "category", "category-workflow")
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +116,7 @@ func (c *ContentFlow) thumbnail(data []byte, options map[string][]string) ([]byt
 		return nil, err
 	}
 	contentId := int(input["id"].(float64))
-	err := c.contentDao.UpdateColById(contentId, "thumbnail", "thumbnail-workflow")
+	err := c.ContentDao.UpdateColById(contentId, "thumbnail", "thumbnail-workflow")
 	if err != nil {
 		return nil, err
 	}
@@ -132,7 +129,7 @@ func (c *ContentFlow) format(data []byte, options map[string][]string) ([]byte, 
 		return nil, err
 	}
 	contentId := int(input["id"].(float64))
-	err := c.contentDao.UpdateColById(contentId, "format", "format-workflow")
+	err := c.ContentDao.UpdateColById(contentId, "format", "format-workflow")
 	if err != nil {
 		return nil, err
 	}
@@ -144,9 +141,9 @@ func (c *ContentFlow) pass(data []byte, option map[string][]string) ([]byte, err
 	if err := json.Unmarshal(data, &input); err != nil {
 		return nil, err
 	}
-	contentID := int(input["content_id"].(float64))
+	contentID := int(input["id"].(float64))
 	// 审核成功
-	if err := c.contentDao.UpdateColById(contentID, "approval_status", 2); err != nil {
+	if err := c.ContentDao.UpdateColById(contentID, "approval_status", 2); err != nil {
 		return nil, err
 	}
 	return data, nil
@@ -159,7 +156,7 @@ func (c *ContentFlow) fail(data []byte, options map[string][]string) ([]byte, er
 	}
 	contentId := int(input["id"].(float64))
 	// 审核失败
-	if err := c.contentDao.UpdateColById(contentId, "approval_status", 3); err != nil {
+	if err := c.ContentDao.UpdateColById(contentId, "approval_status", 3); err != nil {
 		return nil, err
 	}
 	return data, nil
