@@ -40,7 +40,7 @@ func (app *CmsApp) Register(ctx *gin.Context) {
 	exist, err := accountDao.IsExist(registerReq.UserId)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"Message": "服务器内部错误", "err": err.Error()})
-		fmt.Println("error", err.Error())
+		Logger.Error("error", err.Error())
 		return
 	}
 	if exist {
@@ -72,7 +72,7 @@ func (app *CmsApp) Register(ctx *gin.Context) {
 func encryptPassword(password string) (string, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		fmt.Printf("register user password encrypt failed,error=[%v]", err)
+		Logger.Error("register user password encrypt failed,error=[%v]", err)
 		return "", err
 	}
 	return string(hashedPassword), nil

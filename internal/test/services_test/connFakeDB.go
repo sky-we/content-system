@@ -1,7 +1,9 @@
 package services
 
 import (
+	"content-system/internal/process"
 	"fmt"
+	goflow "github.com/s8sg/goflow/v1"
 	"github.com/spf13/viper"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -22,8 +24,15 @@ type FakeMysqlConfig struct {
 	MaxIdleConn int
 }
 
+type FlowServiceConfig struct {
+	RedisURL          string
+	Port              int
+	WorkerConcurrency int
+}
+
 type FakeDBConfig struct {
-	MySQL *FakeMysqlConfig
+	MySQL       *FakeMysqlConfig
+	FlowService *FlowServiceConfig
 }
 
 func LoadFakeDBConfig() {
@@ -37,6 +46,7 @@ func LoadFakeDBConfig() {
 
 	}
 	if err := viper.Unmarshal(&FakeDbCfg); err != nil {
+		panic(err)
 	}
 
 }
@@ -66,3 +76,33 @@ func NewFakeMySqlDB(cfg *FakeMysqlConfig) *gorm.DB {
 	db.SetMaxIdleConns(cfg.MaxIdleConn)
 	return mysqlDB
 }
+
+func NewFlowService(cfg *FlowServiceConfig, db *gorm.DB) *goflow.FlowService {
+	fs := goflow.FlowService{
+		Port:              cfg.Port,
+		RedisURL:          cfg.RedisURL,
+		WorkerConcurrency: cfg.WorkerConcurrency,
+	}
+	contentFlow := process.NewContentFlow(db)
+	err := fs.Register("content-flow", contentFlow.ContentFlowHandle)
+	if err != nil {
+		panic(err)
+	}
+
+	return &fs
+}
+
+//func NewFlowService(cfg *FlowServiceConfig) *goflow.FlowService {
+//	fs := goflow.FlowService{
+//		Port:              cfg.Port,
+//		RedisURL:          cfg.RedisURL,
+//		WorkerConcurrency: cfg.WorkerConcurrency,
+//	}
+//	contentFlow := process.ContentFlow{}
+//	err := fs.Register("content-flow", contentFlow.ContentFlowHandle)
+//	if err != nil {
+//		panic(err)
+//	}
+//
+//	return &fs
+//}

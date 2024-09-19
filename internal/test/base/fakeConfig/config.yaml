@@ -10,7 +10,7 @@ mysql:
   MaxIdleConn: 2
 
 
-flow:
+flowService:
   redisURL: "localhost:6380"
   port: 8088
   workerConcurrency: 5

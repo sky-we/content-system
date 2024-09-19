@@ -1,7 +1,7 @@
 package services
 
 import (
-	"content-system/internal/api"
+	"content-system/internal/middleware"
 	"content-system/internal/services"
 	"fmt"
 	"github.com/alicebob/miniredis/v2"
@@ -12,6 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/suite"
+	"gorm.io/gorm"
 )
 
 type BaseTestSuite struct {
@@ -24,6 +25,7 @@ type BaseTestSuite struct {
 	GinEngine *gin.Engine
 	// 操作MiniRedis
 	Rdb *redis.Client
+	Db  *gorm.DB
 	App *services.CmsApp
 }
 
@@ -86,14 +88,16 @@ func (suite *ContentTestSuite) SetupTest() {
 	rdb := redis.NewClient(&redis.Options{
 		Addr: redisServer.Addr(),
 	})
-	app := services.NewCmsApp(db, rdb)
-	sessionMiddleware := &api.SessionAuth{Rdb: rdb}
+	flowService := NewFlowService(FakeDbCfg.FlowService, suite.Db)
+	app := services.NewCmsApp(db, rdb, flowService)
+	sessionMiddleware := &middleware.SessionAuth{Rdb: rdb}
 	root := r.Group(RootPath).Use(sessionMiddleware.Auth)
 	suite.DbName = dbName
 	suite.Provider = pro
 	suite.Table = table
 	suite.GinEngine = r
 	suite.Rdb = rdb
+	suite.Db = db
 	suite.App = app
 	root.POST("/cms/content/create", suite.App.ContentCreate)
 	root.POST("/cms/content/update", suite.App.ContentUpdate)
@@ -153,7 +157,8 @@ func (suite *AccountTestSuite) SetupTest() {
 	rdb := redis.NewClient(&redis.Options{
 		Addr: redisServer.Addr(),
 	})
-	app := services.NewCmsApp(db, rdb)
+	flowService := NewFlowService(FakeDbCfg.FlowService, suite.Db)
+	app := services.NewCmsApp(db, rdb, flowService)
 	root := r.Group(OutRootPath)
 	suite.DbName = dbName
 	suite.Provider = pro

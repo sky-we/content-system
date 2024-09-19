@@ -3,7 +3,6 @@ package dao
 import (
 	"content-system/internal/model"
 	"errors"
-	"fmt"
 	"gorm.io/gorm"
 )
 
@@ -46,15 +45,14 @@ func (c *ContentDetailDao) IsExist(id int) (bool, error) {
 func (c *ContentDetailDao) First(id int) (*model.ContentDetail, error) {
 
 	var detail model.ContentDetail
-	fmt.Println(c.db.Where("id = ?", id))
 	err := c.db.Where("id = ?", id).First(&detail).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		fmt.Println("error not found")
+		Logger.Error("error not found")
 
 		return nil, nil
 	}
 	if err != nil {
-		fmt.Println(err)
+		Logger.Error(err)
 		return &detail, nil
 	}
 	return &detail, nil
@@ -64,7 +62,7 @@ func (c *ContentDetailDao) First(id int) (*model.ContentDetail, error) {
 func (c *ContentDetailDao) Create(detail *model.ContentDetail) (int, error) {
 	result := c.db.Create(&detail)
 	if result.Error != nil {
-		fmt.Printf("ContentDetailDao create error,%s", result.Error)
+		Logger.Error("ContentDetailDao create error,%s", result.Error)
 		return 0, result.Error
 	}
 	return detail.ID, nil
@@ -73,7 +71,7 @@ func (c *ContentDetailDao) Create(detail *model.ContentDetail) (int, error) {
 func (c *ContentDetailDao) Update(id int, detail *model.ContentDetail) error {
 
 	if err := c.db.Where("id = ?", id).Updates(&detail).Error; err != nil {
-		fmt.Printf("ContentDetailDao update error, %s", err)
+		Logger.Error("ContentDetailDao update error, %s", err)
 		return err
 	}
 	return nil
@@ -81,7 +79,7 @@ func (c *ContentDetailDao) Update(id int, detail *model.ContentDetail) error {
 
 func (c *ContentDetailDao) UpdateColById(id int, col string, val any) error {
 	if err := c.db.Model(&model.ContentDetail{}).Where("id = ?", id).Update(col, val).Error; err != nil {
-		fmt.Printf("ContentDetailDao UpdateColById error, %s", err)
+		Logger.Error("ContentDetailDao UpdateColById error, %s", err)
 		return err
 	}
 	return nil
@@ -89,7 +87,7 @@ func (c *ContentDetailDao) UpdateColById(id int, col string, val any) error {
 
 func (c *ContentDetailDao) Delete(id int, detail *model.ContentDetail) error {
 	if err := c.db.Delete(&detail, id).Error; err != nil {
-		fmt.Printf("ContentDetailDao delete error, %s", err)
+		Logger.Error("ContentDetailDao delete error, %s", err)
 		return err
 	}
 	return nil

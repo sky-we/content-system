@@ -16,5 +16,4 @@ type Account struct {
 func (a *Account) TableName() string {
 	table := "cms_account.account"
 	return table
-
 }

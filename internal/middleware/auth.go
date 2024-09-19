@@ -1,14 +1,15 @@
-package api
+package middleware
 
 import (
 	"content-system/internal/utils"
 	"context"
 	"errors"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/redis/go-redis/v9"
 	"net/http"
 )
+
+var Logger = GetLogger()
 
 const sessionKey = "session_id"
 
@@ -30,10 +31,10 @@ func (s *SessionAuth) Auth(ctx *gin.Context) {
 		return
 	}
 	if errors.Is(err, redis.Nil) {
-		fmt.Println(err)
+		Logger.Error(err)
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"Message": "用户未登录"})
 		return
 	}
-	fmt.Printf("session id = %s", utils.GenAuthKey(sid))
+	Logger.Info("session id = %s", utils.GenAuthKey(sid))
 	ctx.Next()
 }

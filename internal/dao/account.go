@@ -1,11 +1,13 @@
 package dao
 
 import (
+	"content-system/internal/middleware"
 	"content-system/internal/model"
 	"errors"
-	"fmt"
 	"gorm.io/gorm"
 )
+
+var Logger = middleware.GetLogger()
 
 type AccountDao struct {
 	db *gorm.DB
@@ -24,7 +26,7 @@ func (a *AccountDao) IsExist(userId string) (bool, error) {
 		return false, nil
 	}
 	if err != nil {
-		fmt.Println(err)
+		Logger.Error(err)
 		return false, err
 	}
 	return true, nil
@@ -32,7 +34,7 @@ func (a *AccountDao) IsExist(userId string) (bool, error) {
 }
 func (a *AccountDao) Create(account model.Account) error {
 	if err := a.db.Create(&account).Error; err != nil {
-		fmt.Printf("AccountDao create error =[%v]", err)
+		Logger.Error("AccountDao create error =[%v]", err)
 		return err
 	}
 	return nil
@@ -42,7 +44,7 @@ func (a *AccountDao) FindByUserId(userId string) (*model.Account, error) {
 	var account model.Account
 
 	if err := a.db.Where("user_id = ?", userId).First(&account).Error; err != nil {
-		fmt.Printf("account dao FindByUserId error [%v]\n", err)
+		Logger.Error("account dao FindByUserId error [%v]\n", err)
 		return nil, err
 	}
 	return &account, nil

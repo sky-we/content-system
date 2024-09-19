@@ -2,8 +2,8 @@ package process
 
 import (
 	"content-system/internal/dao"
+	"content-system/internal/middleware"
 	"encoding/json"
-	"fmt"
 	flow "github.com/s8sg/goflow/flow/v1"
 	"gorm.io/gorm"
 )
@@ -11,6 +11,8 @@ import (
 type ContentFlow struct {
 	ContentDao *dao.ContentDetailDao
 }
+
+var Logger = middleware.GetLogger()
 
 func NewContentFlow(db *gorm.DB) *ContentFlow {
 	detailDao := dao.NewContentDetailDao(db)
@@ -54,7 +56,7 @@ func (c *ContentFlow) ContentFlowHandle(workflow *flow.Workflow, context *flow.C
 }
 
 func (c *ContentFlow) input(data []byte, options map[string][]string) ([]byte, error) {
-	fmt.Println("exec input node...")
+	Logger.Info("exec input node...")
 
 	var d map[string]int
 	if err := json.Unmarshal(data, &d); err != nil {
@@ -76,7 +78,7 @@ func (c *ContentFlow) input(data []byte, options map[string][]string) ([]byte, e
 	return result, nil
 }
 func (c *ContentFlow) verify(data []byte, options map[string][]string) ([]byte, error) {
-	fmt.Println("exec verify node...")
+	Logger.Info("exec verify node...")
 	var detail map[string]interface{}
 
 	if err := json.Unmarshal(data, &detail); err != nil {
@@ -92,12 +94,12 @@ func (c *ContentFlow) verify(data []byte, options map[string][]string) ([]byte, 
 	} else {
 		detail["approval_status"] = 2
 	}
-	fmt.Println(id, title, videoUrl)
+	Logger.Info(id, title, videoUrl)
 	return json.Marshal(detail)
 }
 
 func (c *ContentFlow) category(data []byte, options map[string][]string) ([]byte, error) {
-	fmt.Println("exec category node...")
+	Logger.Info("exec category node...")
 	var input map[string]interface{}
 	if err := json.Unmarshal(data, &input); err != nil {
 		return nil, err
@@ -110,7 +112,7 @@ func (c *ContentFlow) category(data []byte, options map[string][]string) ([]byte
 	return []byte("category"), nil
 }
 func (c *ContentFlow) thumbnail(data []byte, options map[string][]string) ([]byte, error) {
-	fmt.Println("exec thumbnail node...")
+	Logger.Info("exec thumbnail node...")
 	var input map[string]interface{}
 	if err := json.Unmarshal(data, &input); err != nil {
 		return nil, err
@@ -123,7 +125,7 @@ func (c *ContentFlow) thumbnail(data []byte, options map[string][]string) ([]byt
 	return []byte("thumbnail"), nil
 }
 func (c *ContentFlow) format(data []byte, options map[string][]string) ([]byte, error) {
-	fmt.Println("exec format node...")
+	Logger.Info("exec format node...")
 	var input map[string]interface{}
 	if err := json.Unmarshal(data, &input); err != nil {
 		return nil, err
@@ -136,7 +138,7 @@ func (c *ContentFlow) format(data []byte, options map[string][]string) ([]byte, 
 	return []byte("format"), nil
 }
 func (c *ContentFlow) pass(data []byte, option map[string][]string) ([]byte, error) {
-	fmt.Println("exec pass node...")
+	Logger.Info("exec pass node...")
 	var input map[string]interface{}
 	if err := json.Unmarshal(data, &input); err != nil {
 		return nil, err
@@ -149,7 +151,7 @@ func (c *ContentFlow) pass(data []byte, option map[string][]string) ([]byte, err
 	return data, nil
 }
 func (c *ContentFlow) fail(data []byte, options map[string][]string) ([]byte, error) {
-	fmt.Println("exec fail node...")
+	Logger.Info("exec fail node...")
 	var input map[string]interface{}
 	if err := json.Unmarshal(data, &input); err != nil {
 		return nil, err
@@ -163,7 +165,7 @@ func (c *ContentFlow) fail(data []byte, options map[string][]string) ([]byte, er
 }
 
 func (c *ContentFlow) finish(data []byte, options map[string][]string) ([]byte, error) {
-	fmt.Println("exec finish node...")
-	fmt.Println(string(data))
+	Logger.Info("exec finish node...")
+	Logger.Info(string(data))
 	return data, nil
 }

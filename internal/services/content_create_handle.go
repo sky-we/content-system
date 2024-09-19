@@ -36,6 +36,7 @@ type ContentCreateRsp struct {
 }
 
 func (app *CmsApp) ContentCreate(ctx *gin.Context) {
+	Logger.Info("create content")
 	var contentCreateReq ContentCreateReq
 
 	// 入参校验

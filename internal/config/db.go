@@ -1,6 +1,7 @@
 package config
 
 import (
+	"content-system/internal/middleware"
 	"content-system/internal/process"
 	"fmt"
 	"github.com/redis/go-redis/v9"
@@ -55,21 +56,23 @@ type DataBaseConfig struct {
 var (
 	once     sync.Once
 	DBConfig *DataBaseConfig
+	Logger   = middleware.GetLogger()
 )
 
 func LoadDBConfig() {
+
 	once.Do(func() {
 		viper.SetConfigName("config")
 		viper.SetConfigType("yaml")
 		viper.AddConfigPath("internal/config")
 
 		if err := viper.ReadInConfig(); err != nil {
-			fmt.Printf("error reading db config file, %s", err)
+			Logger.Error("error reading db config file, %s", err)
 			panic(err)
 
 		}
 		if err := viper.Unmarshal(&DBConfig); err != nil {
-			fmt.Printf("unable to decode into struct, %v", err)
+			Logger.Error("unable to decode into struct, %v", err)
 			panic(err)
 		}
 	})
@@ -86,7 +89,7 @@ func NewMySqlDB(cfg *MysqlConfig) *gorm.DB {
 		cfg.ParseTime,
 		cfg.Loc,
 	)
-	fmt.Println("mysql connect dsn:", dsn)
+	Logger.Info("mysql connect dsn:", dsn)
 	mysqlDB, err := gorm.Open(mysql.Open(dsn))
 	if err != nil {
 		panic(err)
@@ -106,18 +109,18 @@ func NewRdb(cfg *RedisConfig) *redis.Client {
 		Password: cfg.Password,
 		DB:       cfg.DB,
 	}
-	fmt.Println("redis connect option:", option)
+	Logger.Info("redis connect option:", option)
 	rdb := redis.NewClient(&option)
 	return rdb
 }
 
-func NewFlowService(cfg *FlowServiceConfig) *goflow.FlowService {
+func NewFlowService(cfg *FlowServiceConfig, db *gorm.DB) *goflow.FlowService {
 	fs := goflow.FlowService{
 		Port:              cfg.Port,
 		RedisURL:          cfg.RedisURL,
 		WorkerConcurrency: cfg.WorkerConcurrency,
 	}
-	contentFlow := process.NewContentFlow(NewMySqlDB(DBConfig.MySQL))
+	contentFlow := process.NewContentFlow(db)
 	err := fs.Register("content-flow", contentFlow.ContentFlowHandle)
 	if err != nil {
 		panic(err)

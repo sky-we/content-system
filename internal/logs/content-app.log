@@ -1,0 +1,10 @@
+{"level":"info","msg":"mysql connect dsn:root:1qaz!QAZ@tcp(localhost:3306)/?charset=utf8mb4\u0026parseTime=True\u0026loc=Local","time":"2024-09-19T22:28:31+08:00"}
+{"level":"info","msg":"redis connect option:{ localhost:6379  \u003cnil\u003e \u003cnil\u003e 0   \u003cnil\u003e \u003cnil\u003e 0 0 0s 0s 0s 0s 0s false false 0 0s 0 0 0 0s 0s \u003cnil\u003e \u003cnil\u003e false false }","time":"2024-09-19T22:28:31+08:00"}
+{"level":"info","msg":"session id = %ssession_auth:e489ec2d-bf36-4e75-bd1c-cecdaed95422","time":"2024-09-19T22:29:42+08:00"}
+{"level":"info","msg":"create content","time":"2024-09-19T22:29:42+08:00"}
+{"level":"info","msg":"exec input node...","time":"2024-09-19T22:29:43+08:00"}
+{"level":"info","msg":"exec verify node...","time":"2024-09-19T22:29:44+08:00"}
+{"level":"info","msg":"24cat videowww.sina111231212331232231323.com","time":"2024-09-19T22:29:44+08:00"}
+{"level":"info","msg":"exec fail node...","time":"2024-09-19T22:29:46+08:00"}
+{"level":"info","msg":"exec finish node...","time":"2024-09-19T22:29:47+08:00"}
+{"level":"info","msg":"ok","time":"2024-09-19T22:29:47+08:00"}

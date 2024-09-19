@@ -128,4 +128,5 @@ func (suite *ContentTestSuite) TestCreateContentLoginAlready() {
 	suite.Equal(http.StatusOK, w.Code)
 	expectBody := `{"code":0,"message":"success","data":{"ID":1}}`
 	suite.Equal(expectBody, w.Body.String())
+	time.Sleep(10 * time.Second)
 }
